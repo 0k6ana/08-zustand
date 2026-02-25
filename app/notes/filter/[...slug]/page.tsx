@@ -1,9 +1,5 @@
 import type { Metadata } from 'next';
-import {
-  QueryClient,
-  HydrationBoundary,
-  dehydrate,
-} from '@tanstack/react-query';
+import { QueryClient, HydrationBoundary, dehydrate } from '@tanstack/react-query';
 
 import { FetchTagNote } from '@/types/note';
 import { fetchFilterNotes } from '@/lib/api';
@@ -14,10 +10,10 @@ interface NotesProps {
   params: { slug?: string[] };
 }
 
-export async function generateMetadata(
-  { params }: NotesProps
-): Promise<Metadata> {
-   const tag = params.slug?.[0] || 'Todo'; 
+// ---------------- generateMetadata ----------------
+export async function generateMetadata({ params }: NotesProps): Promise<Metadata> {
+  const { slug } = await params; 
+  const tag = slug?.[0] || 'Todo'; 
 
   const title = `Notes filtered by "${tag}" | NoteHub`;
   const description = `Перегляд нотаток з фільтром "${tag}" у застосунку NoteHub.`;
@@ -41,10 +37,12 @@ export async function generateMetadata(
   };
 }
 
+// ---------------- page.tsx (Notes function) ----------------
 export default async function Notes({ params }: NotesProps) {
-  const queryClient = new QueryClient();
+  const { slug } = await params; 
+  const tag = (slug?.[0] as FetchTagNote) || 'Todo'; 
 
-  const tag = (params.slug?.[0] as FetchTagNote) || 'Todo'; 
+  const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
     queryKey: ['notes', tag, 1, ''],

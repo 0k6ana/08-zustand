@@ -5,15 +5,32 @@ import { useNoteStore } from '@/lib/store/noteStore';
 import { useRouter } from 'next/navigation';
 import css from './NoteForm.module.css';
 
+import { type Note } from '@/types/note';
+
+type ModalType = 'form' | 'error' | 'create' | 'delete';
+
+interface NoteFormProps {
+  setIsModal?: React.Dispatch<React.SetStateAction<boolean>>;
+  setMessage?: React.Dispatch<React.SetStateAction<Note | null>>;
+  setTypeModal?: React.Dispatch<React.SetStateAction<ModalType>>;
+  onCancel?: () => void;
+}
+
 const initialDraft = {
   title: '',
   content: '',
   tag: 'Todo',
 };
 
-export default function NoteForm() {
+export default function NoteForm({
+  setIsModal,
+  setMessage,
+  setTypeModal,
+  onCancel,
+}: NoteFormProps) {
   const router = useRouter();
   const { draft, setDraft, clearDraft } = useNoteStore();
+
   const [form, setForm] = useState(draft || initialDraft);
 
   useEffect(() => {
@@ -24,6 +41,7 @@ export default function NoteForm() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
     setForm((prev) => ({ ...prev, [name]: value }));
     setDraft({ [name]: value });
   };
@@ -33,14 +51,34 @@ export default function NoteForm() {
 
     try {
       clearDraft();
-      router.back();
+
+      const newNote = {
+        id: Date.now().toString(),
+        title: form.title,
+        content: form.content,
+        tag: form.tag,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as Note;
+
+      if (setTypeModal && setMessage) {
+        setMessage(newNote);
+        setTypeModal('create');
+      } else {
+        router.push('/notes');
+      }
     } catch (err) {
-      console.error('Failed to save note', err);
+      console.error(err);
+      setTypeModal?.('error');
     }
   };
 
   const handleCancel = () => {
-    router.back();
+    if (onCancel) {
+      onCancel();
+    } else {
+      router.back();
+    }
   };
 
   return (
@@ -52,7 +90,6 @@ export default function NoteForm() {
           name="title"
           value={form.title}
           onChange={handleChange}
-          placeholder="Enter title"
         />
       </div>
 
@@ -63,7 +100,6 @@ export default function NoteForm() {
           name="content"
           value={form.content}
           onChange={handleChange}
-          placeholder="Enter content"
         />
       </div>
 
@@ -75,7 +111,6 @@ export default function NoteForm() {
           value={form.tag}
           onChange={handleChange}
         >
-          <option value="All notes">All notes</option>
           <option value="Todo">Todo</option>
           <option value="Work">Work</option>
           <option value="Personal">Personal</option>
@@ -88,6 +123,7 @@ export default function NoteForm() {
         <button type="submit" className={css.submitButton}>
           Save
         </button>
+
         <button type="button" className={css.cancelButton} onClick={handleCancel}>
           Cancel
         </button>

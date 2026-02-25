@@ -16,7 +16,7 @@ import NoteForm from '@/components/NoteForm/NoteForm';
 import SearchBox from '@/components/SearchBox/SearchBox';
 import CreateMessage from '@/components/CreateMessage/CreateMessage';
 
-type Modal = 'form' | 'error' | 'create' | 'delete';
+type ModalType = 'form' | 'error' | 'create' | 'delete';
 
 interface NotesClientProps {
   tag: FetchTagNote;
@@ -26,7 +26,7 @@ export default function NotesClient({ tag }: NotesClientProps) {
   const [page, setPage] = useState(1);
   const [isModal, setIsModal] = useState(false);
   const [word, setWord] = useState('');
-  const [typeModal, setTypeModal] = useState<Modal>('form');
+  const [typeModal, setTypeModal] = useState<ModalType>('form');
   const [message, setMessage] = useState<Note | null>(null);
 
   const { data } = useQuery({
@@ -45,14 +45,13 @@ export default function NotesClient({ tag }: NotesClientProps) {
     setIsModal(false);
   }
 
-  function createBtn() {
-    setIsModal(true);
+  function openCreateForm() {
     setTypeModal('form');
+    setIsModal(true);
   }
 
   const changeWord = useDebouncedCallback((newWord: string) => {
-    const page = 1;
-    setPage(page);
+    setPage(1);
     setWord(newWord);
   }, 500);
 
@@ -60,6 +59,7 @@ export default function NotesClient({ tag }: NotesClientProps) {
     <div className={css.notes}>
       <div className={css.toolbar}>
         <SearchBox changeWord={changeWord} />
+
         {data && data.totalPages > 1 && (
           <Pagination
             page={page}
@@ -67,18 +67,21 @@ export default function NotesClient({ tag }: NotesClientProps) {
             setPage={setPage}
           />
         )}
-        <button className={css.toolBtn} onClick={createBtn}>
+
+        <button className={css.toolBtn} onClick={openCreateForm}>
           Create note +
         </button>
       </div>
+
       {data && data.notes.length > 0 && (
         <NoteList
+          noteList={data.notes}
           setIsModal={setIsModal}
           setMessage={setMessage}
           setTypeModal={setTypeModal}
-          noteList={data.notes}
         />
       )}
+
       {isModal && (
         <Modal onClose={closeModal}>
           {typeModal === 'form' && (
@@ -89,14 +92,24 @@ export default function NotesClient({ tag }: NotesClientProps) {
               onCancel={cancelForm}
             />
           )}
+
           {typeModal === 'create' && message && (
             <CreateMessage note={message} mess="Is created" />
           )}
+
           {typeModal === 'delete' && message && (
             <CreateMessage note={message} mess="Is deleted" />
+          )}
+
+          {typeModal === 'error' && (
+            <p style={{ padding: 20 }}>Something went wrong</p>
           )}
         </Modal>
       )}
     </div>
   );
 }
+
+
+
+
