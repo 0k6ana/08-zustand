@@ -4,7 +4,7 @@ import css from './page.module.css';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: '404 - Page Not Found | NoteHub',
   description:
     'Сторінка не існує або була видалена. Повернення на головну сторінку NoteHub.',
