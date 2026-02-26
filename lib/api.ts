@@ -38,19 +38,21 @@ export async function fetchFilterNotes(
 
   return res.data;
 }
-export async function createNote(note: NewNote): Promise<Note> {
-  const res = await axios.post<Note>(
-    `https://notehub-public.goit.study/api/notes`,
-    note,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+export const createNote = async (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>): Promise<Note> => {
+  const response = await fetch('/api/notes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(note),
+  });
 
-  return res.data;
-}
+  if (!response.ok) {
+    throw new Error('Failed to create note');
+  }
+
+  return response.json();
+};
 
 export async function deleteNote(id: string): Promise<Note> {
   const res = await axios.delete<Note>(
